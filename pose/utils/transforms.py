@@ -5,6 +5,7 @@ import numpy as np
 import scipy.misc
 import matplotlib.pyplot as plt
 import torch
+from PIL import Image
 
 from .misc import *
 from .imutils import *
@@ -126,6 +127,8 @@ def transform_preds(coords, center, scale, res):
 
 
 def crop(img, center, scale, res, rot=0):
+    print("img type in crop function", type(img))
+    print(img)
     img = im_to_numpy(img)
 
     # Preprocessing for efficient cropping
@@ -174,5 +177,7 @@ def crop(img, center, scale, res, rot=0):
         new_img = scipy.misc.imrotate(new_img, rot)
         new_img = new_img[pad:-pad, pad:-pad]
 
-    new_img = im_to_torch(scipy.misc.imresize(new_img, res))
+    # new_img = im_to_torch(scipy.misc.imresize(new_img, res))
+    print("image SHAPE bitch:::::::", new_img.shape)
+    new_img = im_to_torch(np.array(Image.fromarray(new_img.astype("uint8")).resize(res)))
     return new_img

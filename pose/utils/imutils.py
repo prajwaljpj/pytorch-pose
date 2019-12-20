@@ -8,6 +8,8 @@ import scipy.misc
 from .misc import *
 
 def im_to_numpy(img):
+    print("img type in im_to_numpy function", type(img))
+    print((img))
     img = to_numpy(img)
     img = np.transpose(img, (1, 2, 0)) # H*W*C
     return img

@@ -10,6 +10,8 @@ from .transforms import transform, transform_preds
 
 __all__ = ['accuracy', 'AverageMeter']
 
+# def threshold(maxval, preds):
+
 def get_preds(scores):
     ''' get predictions from score maps in torch Tensor
         return type: torch.LongTensor
@@ -27,6 +29,8 @@ def get_preds(scores):
 
     pred_mask = maxval.gt(0).repeat(1, 1, 2).float()
     preds *= pred_mask
+
+    preds = torch.cat((preds, maxval), 2)
     return preds
 
 def calc_dists(preds, target, normalize):
@@ -63,9 +67,9 @@ def accuracy(output, target, idxs, thr=0.5):
     cnt = 0
 
     for i in range(len(idxs)):
-        acc[i+1] = dist_acc(dists[idxs[i]-1])
-        if acc[i+1] >= 0:
-            avg_acc = avg_acc + acc[i+1]
+        acc[i] = dist_acc(dists[idxs[i]])
+        if acc[i] >= 0:
+            avg_acc = avg_acc + acc[i]
             cnt += 1
 
     if cnt != 0:
@@ -73,9 +77,11 @@ def accuracy(output, target, idxs, thr=0.5):
     return acc
 
 def final_preds(output, center, scale, res):
-    coords = get_preds(output) # float type
+    coords_comb = get_preds(output) # float type
+    #print (center, scale, res)
+    coords = coords_comb[:,:,0:2]
+    vals = coords_comb[:,:,2]
 
-    # pose-processing
     for n in range(coords.size(0)):
         for p in range(coords.size(1)):
             hm = output[n][p]
@@ -94,7 +100,8 @@ def final_preds(output, center, scale, res):
     if preds.dim() < 3:
         preds = preds.view(1, preds.size())
 
-    return preds
+    #print ("preds", preds.shape, vals.shape)
+    return preds, vals
 
 
 class AverageMeter(object):
